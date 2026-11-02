@@ -1,13 +1,16 @@
-# IN3101 Lab 02: Library API
+# IN3101 Lab 02 — Library REST API
 
-A Spring Boot REST API for creating, listing, retrieving, updating, and deleting library books. Built for IN3101 Enterprise Application Development, Lab Sheet 02.
+A Spring Boot REST API for managing books, prepared for IN3101 Enterprise Application Development Lab Sheet 02.
+
+> **Database note:** The lab sheet specifies MySQL. At the user's request, this checkout is configured for the available Microsoft SQL Server instance using Windows integrated authentication. See [Database setup](#database-setup). Confirm this substitution is acceptable for submission if the marking rubric requires MySQL specifically.
 
 ## Features
 
-- Book CRUD endpoints backed by MySQL and Spring Data JPA
-- Bean Validation for required titles/authors and non-negative prices
+- CRUD endpoints for library books (`/api/books`)
+- Spring Data JPA persistence
+- Bean Validation for required fields and non-negative prices
 - OpenAPI documentation and Swagger UI
-- Importable Postman collection for the lab's request sequence
+- Postman collection for the required test sequence
 
 ## Technology
 
@@ -15,12 +18,11 @@ A Spring Boot REST API for creating, listing, retrieving, updating, and deleting
 |---|---|
 | Java | 21 |
 | Spring Boot | 3.5.16 |
-| Spring Data JPA | Managed by Spring Boot |
-| MySQL Connector/J | Managed by Spring Boot |
+| Microsoft JDBC Driver | 13.6.0 |
 | Springdoc OpenAPI | 2.10.0 |
-| Maven | 3.9 or newer |
+| Maven | 3.9+ |
 
-## Project layout
+## Repository structure
 
 ```text
 .
@@ -28,6 +30,8 @@ A Spring Boot REST API for creating, listing, retrieving, updating, and deleting
 │   └── create-library-db.sql
 ├── postman/
 │   └── IN3101-Lab02-Book-API.postman_collection.json
+├── scripts/
+│   ├── run-local.ps1
 ├── src/main/java/lk/ac/mrt/fit/library_api/
 │   ├── controller/BookController.java
 │   ├── model/Book.java
@@ -39,57 +43,49 @@ A Spring Boot REST API for creating, listing, retrieving, updating, and deleting
 └── pom.xml
 ```
 
-## Requirements
+## Prerequisites
 
 - JDK 21
 - Maven 3.9+
-- MySQL Server available at `localhost:3306` (or configure `DB_URL`)
+- Microsoft SQL Server reachable from this machine
+- Postman Desktop (for the lab test evidence)
+
+## Database setup
+
+Open `database/create-library-db.sql` in SSMS and execute it. The script creates `library_db` only when it does not exist; it does not drop or reset databases. Hibernate creates or updates the `book` table when the application starts.
+
+The default JDBC URL targets `localhost:1434`, uses encryption with a trusted local certificate, and enables Windows integrated authentication. Change `DB_URL` for a different SQL Server host or port. No password or login is stored in the repository.
+
+The Microsoft JDBC integrated-authentication DLL is obtained by the local run script from the official Microsoft JDBC driver archive, extracted under the ignored `target/` directory, and added to the current PowerShell process's PATH. No system PATH setting is changed.
 
 ## Run locally
 
-### 1. Create the database
-
-Run the following once in MySQL Workbench or another MySQL client:
-
-```sql
-CREATE DATABASE IF NOT EXISTS library_db;
-```
-
-The same non-destructive statement is in [`database/create-library-db.sql`](database/create-library-db.sql). It does not drop or reset an existing database. Hibernate creates or updates the `book` table when the application starts.
-
-### 2. Set database credentials
-
-The default database username is `root`. Set the password in your shell; credentials are read from environment variables and are not stored in this repository.
-
-PowerShell:
+From the repository directory in PowerShell:
 
 ```powershell
-$env:DB_PASSWORD = "your-local-mysql-password"
+.\scripts\run-local.ps1
 ```
 
-If needed, set `DB_USERNAME`, `DB_URL`, or `SERVER_PORT` as shown below.
-
-### 3. Start the application
-
-From the project directory:
+The API listens on port `8080` by default. To use another HTTP port:
 
 ```powershell
-mvn spring-boot:run
+$env:SERVER_PORT = "8081"
+.\scripts\run-local.ps1
 ```
-
-The service listens on port `8080` by default. If another local application is using that port, set `$env:SERVER_PORT = "8081"` and use port `8081` for the requests and Swagger UI.
 
 ## API reference
 
 | Method | Endpoint | Success response |
 |---|---|---|
 | `GET` | `/api/books` | `200 OK` with all books |
-| `GET` | `/api/books/{id}` | `200 OK` with a book; `404 Not Found` if absent |
-| `POST` | `/api/books` | `201 Created` with the saved book and generated ID |
-| `PUT` | `/api/books/{id}` | `200 OK` with the updated book; `404 Not Found` if absent |
-| `DELETE` | `/api/books/{id}` | `204 No Content`; `404 Not Found` if absent |
+| `GET` | `/api/books/{id}` | `200 OK`; `404 Not Found` when absent |
+| `POST` | `/api/books` | `201 Created` with generated ID |
+| `PUT` | `/api/books/{id}` | `200 OK`; `404 Not Found` when absent |
+| `DELETE` | `/api/books/{id}` | `204 No Content`; `404 Not Found` when absent |
 
-### Book JSON
+`title` and `author` are required. `price` must be zero or greater. Invalid request bodies return `400 Bad Request`.
+
+### Example request body
 
 ```json
 {
@@ -100,36 +96,31 @@ The service listens on port `8080` by default. If another local application is u
 }
 ```
 
-The `id` is generated by the database. `title` and `author` cannot be blank. `price` must be zero or greater.
-
 ## API documentation
 
-Once the application is running:
+When the service is running:
 
 - Swagger UI: <http://localhost:8080/swagger-ui.html>
 - OpenAPI JSON: <http://localhost:8080/v3/api-docs>
 
-The `Books` tag groups all five endpoints. The create-book endpoint documents its `201 Created` and `400 Bad Request` responses.
+The create-book operation documents its `201 Created` and `400 Bad Request` responses.
 
-## Postman collection
+## Postman verification
 
-Import [`postman/IN3101-Lab02-Book-API.postman_collection.json`](postman/IN3101-Lab02-Book-API.postman_collection.json) into Postman. Select the collection's variables and confirm `baseUrl` points to the running app and `indexNo` is your student index. The collection currently uses `234235L`.
-
-Run the requests in order. The first create request stores its generated ID as `bookId`; later requests use that ID to retrieve, update, delete, and verify the deleted book. The collection also creates two more books so the list request can verify at least three records.
-
-For the lab submission, capture the required Postman responses and the expanded Swagger POST operation in your own running environment. Screenshots should show the full Postman window, including method, URL, request body, and response status.
-
+Import `postman/IN3101-Lab02-Book-API.postman_collection.json` into Postman. The requests cover book creation, listing, retrieval, update, deletion, deleted-record lookup, and blank-title validation. The collection is configured for student index `234235L`.
 ## Configuration
 
-| Environment variable | Default | Purpose |
+| Variable | Default | Purpose |
 |---|---|---|
-| `SERVER_PORT` | `8080` | HTTP port for the API |
-| `DB_URL` | `jdbc:mysql://localhost:3306/library_db?...` | JDBC URL for MySQL |
-| `DB_USERNAME` | `root` | MySQL account name |
-| `DB_PASSWORD` | empty | MySQL account password |
+| `SERVER_PORT` | `8080` | API HTTP port |
+| `DB_URL` | `jdbc:sqlserver://localhost:1434;databaseName=library_db;...` | JDBC connection URL |
+| `DB_USERNAME` | empty | Optional SQL login username |
+| `DB_PASSWORD` | empty | Optional SQL login password |
 
-`spring.jpa.hibernate.ddl-auto=update` is enabled for this lab project. Use a MySQL account with permission to create and update tables in `library_db`.
+The checked-in configuration uses Windows integrated authentication. Keep local credentials out of Git if you change it to SQL authentication.
 
-## Repository workflow
+## Student
 
-This folder is an independent Git repository. Make commits from this directory so the assignment remains separate from any parent project repository.
+- **Name:** W.M.D.N.Wijerathne
+- **Index:** 234235L
+- **Repository:** [Dhanujaya738/Lab-Exercise](https://github.com/Dhanujaya738/Lab-Exercise)
