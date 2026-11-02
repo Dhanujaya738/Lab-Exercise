@@ -118,9 +118,3 @@ Import `postman/IN3101-Lab02-Book-API.postman_collection.json` into Postman. The
 | `DB_PASSWORD` | empty | Optional SQL login password |
 
 The checked-in configuration uses Windows integrated authentication. Keep local credentials out of Git if you change it to SQL authentication.
-
-## Student
-
-- **Name:** W.M.D.N.Wijerathne
-- **Index:** 234235L
-- **Repository:** [Dhanujaya738/Lab-Exercise](https://github.com/Dhanujaya738/Lab-Exercise)
