@@ -1,0 +1,59 @@
+{
+  "info": {
+    "name": "IN3101 Lab 02 - Book API",
+    "description": "CRUD and validation requests for the library-api lab. Set indexNo before running; use the create request ID for the following requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "indexNo", "value": "234235L" },
+    { "key": "bookId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "S1 - Create index-number book (201)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Created', () => pm.response.to.have.status(201));", "const book = pm.response.json();", "pm.expect(book.id).to.be.a('number');", "pm.collectionVariables.set('bookId', book.id);", "pm.expect(book.title).to.include(pm.collectionVariables.get('indexNo'));" ] } }],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"{{indexNo}} - Clean Code\",\n  \"author\": \"Robert C. Martin\",\n  \"isbn\": \"9780132350884\",\n  \"price\": 4500.00\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/books" }
+    },
+    {
+      "name": "Create second book",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Created', () => pm.response.to.have.status(201));"] } }],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"The Pragmatic Programmer\",\n  \"author\": \"David Thomas\",\n  \"isbn\": \"9780201616224\",\n  \"price\": 3900.00\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/books" }
+    },
+    {
+      "name": "Create third book",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Created', () => pm.response.to.have.status(201));"] } }],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"Effective Java\",\n  \"author\": \"Joshua Bloch\",\n  \"isbn\": \"9780134685991\",\n  \"price\": 4200.00\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/books" }
+    },
+    {
+      "name": "S2 - List all books (200, at least 3)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('OK', () => pm.response.to.have.status(200));", "const books = pm.response.json();", "pm.expect(books.length).to.be.at.least(3);", "pm.expect(books.some(book => book.title.includes(pm.collectionVariables.get('indexNo')))).to.be.true;"] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/books" }
+    },
+    {
+      "name": "S3 - Get created book (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('OK', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get('bookId')));"] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/books/{{bookId}}" }
+    },
+    {
+      "name": "S4 - Update created book (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('OK', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().title).to.include('Updated');"] } }],
+      "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"{{indexNo}} - Clean Code Updated\",\n  \"author\": \"Robert C. Martin\",\n  \"isbn\": \"9780132350884\",\n  \"price\": 4600.00\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/books/{{bookId}}" }
+    },
+    {
+      "name": "S5 - Delete created book (204)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('No Content', () => pm.response.to.have.status(204));"] } }],
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/api/books/{{bookId}}" }
+    },
+    {
+      "name": "S6 - Get deleted book (404)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Not Found', () => pm.response.to.have.status(404));"] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/books/{{bookId}}" }
+    },
+    {
+      "name": "S7 - Validation rejects blank title (400)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Bad Request', () => pm.response.to.have.status(400));"] } }],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"\",\n  \"author\": \"Example Author\",\n  \"isbn\": \"0000000000\",\n  \"price\": 0\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/books" }
+    }
+  ]
+}
