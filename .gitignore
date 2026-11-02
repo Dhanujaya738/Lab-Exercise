@@ -3,3 +3,7 @@ target/
 .env.*
 !.env.example
 *.log
+
+# Local-only coursework deliverables
+/output/
+/scripts/build_submission_pdf.py
