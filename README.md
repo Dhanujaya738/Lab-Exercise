@@ -2,8 +2,6 @@
 
 A Spring Boot REST API for managing books, prepared for IN3101 Enterprise Application Development Lab Sheet 02.
 
-> **Database note:** The lab sheet specifies MySQL. At the user's request, this checkout is configured for the available Microsoft SQL Server instance using Windows integrated authentication. See [Database setup](#database-setup). Confirm this substitution is acceptable for submission if the marking rubric requires MySQL specifically.
-
 ## Features
 
 - CRUD endpoints for library books (`/api/books`)
